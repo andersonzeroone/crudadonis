@@ -1,8 +1,8 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-
+import Env from '@ioc:Adonis/Core/Env'
 export default class UsersController {
   public async index({ response }: HttpContextContract) {
-    response.ok({ message: 'Lista todos os users' })
+    response.ok({ message: Env.get('EMAIL') })
   }
 
   public async store({ response }: HttpContextContract) {
