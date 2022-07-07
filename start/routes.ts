@@ -20,6 +20,12 @@
 
 import Route from '@ioc:Adonis/Core/Route'
 
-Route.get('/', async () => {
-  return { hello: 'world' }
-})
+Route.where('id', /^[0-9]+$/) //valida params
+Route.where('id', {
+  match: /^[0-9]+$/,
+  cast: (id) => Number(id),
+}) // converte o valor do param
+
+Route.where('id', Route.matchers.number()) // elemina os dois de cima
+
+Route.get('/', 'HelloWordsController.hello')
