@@ -28,4 +28,19 @@ Route.where('id', {
 
 Route.where('id', Route.matchers.number()) // elemina os dois de cima
 
-Route.get('/', 'HelloWordsController.hello')
+// Route.group(() => {
+//   Route.get('users', 'UsersController.index')
+//   Route.post('users/', 'UsersController.store')
+//   Route.get('users/:id', 'UsersController.show')
+//   Route.put('users/:id', 'UsersController.update')
+//   Route.delete('users/:id', 'UsersController.destroy')
+// }).prefix('v1/api')
+
+Route.group(() => {
+  Route.resource('users/', 'UsersController')
+}).prefix('v1/api')
+
+//todos exeto destroy
+// Route.group(() => {
+//   Route.resource('users/', 'UsersController').except(['destroy'])
+// }).prefix('v1/api')

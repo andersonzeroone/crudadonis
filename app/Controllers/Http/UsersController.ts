@@ -1,17 +1,23 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 export default class UsersController {
-  public async index({}: HttpContextContract) {}
+  public async index({ response }: HttpContextContract) {
+    response.ok({ message: 'Lista todos os users' })
+  }
 
-  public async create({}: HttpContextContract) {}
+  public async store({ response }: HttpContextContract) {
+    response.ok({ message: 'Cadastra um user' })
+  }
 
-  public async store({}: HttpContextContract) {}
+  public async show({ response }: HttpContextContract) {
+    response.ok({ message: 'mostra um  user (id)' })
+  }
 
-  public async show({}: HttpContextContract) {}
+  public async update({ response }: HttpContextContract) {
+    response.ok({ message: 'Altera dados' })
+  }
 
-  public async edit({}: HttpContextContract) {}
-
-  public async update({}: HttpContextContract) {}
-
-  public async destroy({}: HttpContextContract) {}
+  public async destroy({ response }: HttpContextContract) {
+    response.ok({ message: 'deleta dados' })
+  }
 }
