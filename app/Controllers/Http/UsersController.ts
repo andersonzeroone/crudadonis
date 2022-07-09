@@ -1,4 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Database from '@ioc:Adonis/Lucid/Database'
 import Role from 'App/Models/Role'
 import User from 'App/Models/User'
 // import Env from '@ioc:Adonis/Core/Env'
@@ -22,19 +23,24 @@ export default class UsersController {
 
     let userCreate
 
+    const trx = await Database.beginGlobalTransaction()
+
     try {
-      userCreate = await User.create(bodyUser)
+      userCreate = await User.create(bodyUser, trx)
 
       const roleClient = await Role.findBy('name', 'client')
 
-      if (roleClient) await userCreate.related('roles').attach([roleClient.id])
+      if (roleClient) await userCreate.related('roles').attach([roleClient.id], trx)
     } catch (error) {
+      trx.rollback()
       return response.badRequest({ message: 'Error in create user', originalError: error.message })
     }
 
     try {
       await userCreate.related('address').create(bodyAddress)
     } catch (error) {
+      trx.rollback()
+
       return response.badRequest({
         message: 'Error in create address',
         originalError: error.message,
@@ -46,13 +52,16 @@ export default class UsersController {
     try {
       userFind = await User.query().where('id', userCreate.id).preload('roles').preload('address')
     } catch (error) {
+      trx.rollback()
       return response.badRequest({
         message: 'Error in find user',
         originalError: error.message,
       })
     }
 
-    response.ok({ userFind })
+    trx.commit()
+
+    return response.ok({ userFind })
   }
 
   public async show({ response }: HttpContextContract) {
