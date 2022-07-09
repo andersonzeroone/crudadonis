@@ -5,7 +5,7 @@ export default class extends BaseSchema {
 
   public async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      table.string('remember_me_token', 250).after('secure_id').notNullable()
+      table.string('remember_me_token', 250).after('secure_id').nullable()
     })
   }
 
