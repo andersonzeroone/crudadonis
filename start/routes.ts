@@ -40,7 +40,16 @@ Route.where('id', Route.matchers.number()) // elemina os dois de cima
 
 Route.group(() => {
   Route.resource('users/', 'UsersController')
+  Route.post('login', 'AuthController.login')
 }).prefix('v1/api')
+
+Route.group(() => {
+  Route.post('testAuth', ({ response }) => {
+    return response.ok({ message: 'voce esta autenticado' })
+  })
+})
+  .prefix('v1/api')
+  .middleware(['auth', 'is:admin,client'])
 
 //todos exeto destroy
 // Route.group(() => {
