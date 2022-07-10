@@ -6,6 +6,7 @@ import User from 'App/Models/User'
 // import Env from '@ioc:Adonis/Core/Env'
 
 import StoreValidator from 'App/Validators/User/StoreValidator'
+import UpdateValidator from 'App/Validators/User/updateValidator'
 export default class UsersController {
   public async index({ response }: HttpContextContract) {
     response.status(200).json({ message: 'success' })
@@ -74,6 +75,8 @@ export default class UsersController {
   }
 
   public async update({ response, request, params }: HttpContextContract) {
+    await request.validate(UpdateValidator)
+
     const userSecureId = params.id
     const bodyUser = request.only(['name', 'cpf', 'email', 'password'])
     const bodyAddress = request.only([
