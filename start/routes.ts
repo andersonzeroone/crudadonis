@@ -50,12 +50,15 @@ Route.get('teste_db', async ({ response }: HttpContextContract) => {
 
 Route.group(() => {
   Route.post('login', 'AuthController.login')
-  Route.post('users', 'UsersController.store')
+  Route.post('users/', 'UsersController.store')
 }).prefix('v1/api')
 
-// Route.group(() => {
-//   Route.resource('users', 'UsersController').except['store']
-// }).prefix('v1/api')
+Route.group(() => {
+  Route.resource('user', 'UsersController').except['store']
+})
+  .prefix('v1/api')
+  .as('blog')
+  .middleware(['auth', 'is:admin,client'])
 
 Route.group(() => {
   Route.post('testAuth', ({ response }) => {
