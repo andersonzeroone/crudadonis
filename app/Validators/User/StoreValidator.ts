@@ -24,8 +24,6 @@ export default class StoreValidator extends MessagesCustom {
       rules.unique({ table: 'users', column: 'cpf' }),
     ]),
 
-    urlProfilePic: schema.file({ size: '2mb', extnames: ['jpg', 'png', 'jpeg'] }, []),
-
     password: schema.string({}, [rules.maxLength(50)]),
     zipCode: schema.string({}, [rules.regex(/^[0-9]{5}-[0-9]{3}$/)]),
     state: schema.string({ trim: true }, [rules.maxLength(2)]),

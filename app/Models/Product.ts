@@ -1,15 +1,22 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, beforeCreate, column, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
 
-import { v4 as uuidV4 } from 'uuid'
 import Categorie from './Categorie'
 
-export default class Product extends BaseModel {
+import { compose } from '@ioc:Adonis/Core/Helpers'
+import { Filterable } from '@ioc:Adonis/Addons/LucidFilter'
+import ProductFilter from '../Models/Filters/ProductFilter'
+
+import { v4 as uuidv4 } from 'uuid'
+
+export default class Product extends compose(BaseModel, Filterable) {
+  public static $filter = () => ProductFilter
+
   @column({ isPrimary: true })
   public id: number
 
   @column()
-  public secureId: uuidV4
+  public secureId: uuidv4
 
   @column()
   public name: string
@@ -23,6 +30,11 @@ export default class Product extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @manyToMany(() => Categorie, { pivotTable: 'product_categories' })
+  @manyToMany(() => Categorie, { pivotTable: 'products_categories' })
   public categories: ManyToMany<typeof Categorie>
+
+  @beforeCreate()
+  public static defineUUID(product: Product) {
+    product.secureId = uuidv4()
+  }
 }

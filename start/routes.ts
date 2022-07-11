@@ -49,31 +49,31 @@ Route.get('teste_db', async ({ response }: HttpContextContract) => {
 // }).prefix('v1/api')
 
 //Public Routes group
-Route.group(() => {
-  Route.post('login', 'AuthController.login')
-  Route.post('users/', 'UsersController.store')
-}).prefix('v1/api')
+// Route.group(() => {
+//   Route.post('login', 'AuthController.login')
+//   Route.post('users/', 'UsersController.store')
+// }).prefix('v1/api')
 
-//Private Routes group
+// //Private Routes group
 
-Route.group(() => {
-  Route.get('users/:id', 'UsersController.show')
-})
-  .prefix('v1/api')
-  .middleware(['auth', 'is:admin,client'])
+// Route.group(() => {
+//   Route.get('users/:id', 'UsersController.show')
+// })
+//   .prefix('v1/api')
+//   .middleware(['auth', 'is:admin,client'])
 
-Route.group(() => {
-  Route.resource('users/', 'UsersController').except(['store', 'index', 'destroy', 'show'])
-})
-  .prefix('v1/api')
-  .middleware(['auth', 'is:client'])
+// Route.group(() => {
+//   Route.resource('users/', 'UsersController').except(['store', 'index', 'destroy', 'show'])
+// })
+//   .prefix('v1/api')
+//   .middleware(['auth', 'is:client'])
 
-// Routes admin group
-Route.group(() => {
-  Route.resource('users/', 'UsersController').only(['index', 'destroy'])
-})
-  .prefix('v1/api')
-  .middleware(['auth', 'is:admin'])
+// // Routes admin group
+// Route.group(() => {
+//   Route.resource('users/', 'UsersController').only(['index', 'destroy'])
+// })
+//   .prefix('v1/api')
+//   .middleware(['auth', 'is:admin'])
 
 // Route.group(() => {
 //   Route.post('testAuth', ({ response }) => {
@@ -82,3 +82,38 @@ Route.group(() => {
 // })
 //   .prefix('v1/api')
 //   .middleware(['auth', 'is:admin'])
+
+// Public Routes Group
+Route.group(() => {
+  Route.post('login', 'AuthController.login')
+
+  Route.post('users/', 'UsersController.store')
+
+  Route.resource('redis/', 'TestRedisController').only(['show', 'destroy', 'store'])
+}).prefix('v1/api')
+
+// Client Routes Group
+Route.group(() => {
+  Route.resource('users/', 'UsersController').except(['store', 'index', 'destroy'])
+  Route.resource('products/', 'ProductsController').except(['store', 'destroy'])
+  Route.resource('cart/', 'CartController').apiOnly()
+  Route.resource('purchases/', 'PurchasesController').only(['store', 'index', 'show'])
+})
+  .prefix('v1/api')
+  .middleware(['auth', 'is:client'])
+
+// Employee Routes Group
+Route.group(() => {
+  Route.resource('products/', 'ProductsController').only(['store', 'destroy'])
+  Route.resource('categories/', 'CategoriesController').apiOnly()
+})
+  .prefix('v1/api')
+  .middleware(['auth', 'is:employee'])
+
+// Admin Routes group
+Route.group(() => {
+  Route.resource('users/', 'UsersController').only(['index', 'destroy'])
+  Route.post('users/access_allow', 'UsersController.AccessAllow')
+})
+  .prefix('v1/api')
+  .middleware(['auth', 'is:admin'])

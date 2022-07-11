@@ -3,6 +3,7 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import Address from 'App/Models/Address'
 import Role from 'App/Models/Role'
 import User from 'App/Models/User'
+import AccessAllowValidator from 'App/Validators/User/AccessAllowValidator'
 // import Env from '@ioc:Adonis/Core/Env'
 
 import StoreValidator from 'App/Validators/User/StoreValidator'
@@ -183,6 +184,38 @@ export default class UsersController {
       return response.ok({ messega: 'User delete successfully' })
     } catch (error) {
       return response.notFound({ message: 'User not found', originalError: error.message })
+    }
+  }
+
+  public async AccessAllow({ response, request }: HttpContextContract) {
+    await request.validate(AccessAllowValidator)
+
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const { user_id, roles } = request.all()
+
+    try {
+      const userAllow = await User.findByOrFail('id', user_id)
+
+      let roleIds: number[] = []
+      await Promise.all(
+        roles.map(async (roleName) => {
+          const hasRole = await Role.findBy('name', roleName)
+          if (hasRole) roleIds.push(hasRole.id)
+        })
+      )
+
+      await userAllow.related('roles').sync(roleIds)
+    } catch (error) {
+      return response.badRequest({ message: 'Error in access allow', originalError: error.message })
+    }
+
+    try {
+      return User.query().where('id', user_id).preload('roles').preload('address').firstOrFail()
+    } catch (error) {
+      return response.badRequest({
+        message: 'Error in find user',
+        originalError: error.message,
+      })
     }
   }
 }
