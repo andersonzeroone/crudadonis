@@ -17,6 +17,12 @@ import Purchase from './Purchase'
 import Role from './Role'
 import Hash from '@ioc:Adonis/Core/Hash'
 
+import { compose } from '@ioc:Adonis/Core/Helpers'
+
+import { Filterable } from '@ioc:Adonis/Addons/LucidFilter'
+
+import UserFilter from './Filters/UserFilter'
+
 /**
  * Hooks
     beforeSave
@@ -28,7 +34,9 @@ import Hash from '@ioc:Adonis/Core/Hash'
     beforeFind
  */
 
-export default class User extends BaseModel {
+export default class User extends compose(BaseModel, Filterable) {
+  public static $filter = () => UserFilter
+
   @column({ isPrimary: true })
   public id: number
 

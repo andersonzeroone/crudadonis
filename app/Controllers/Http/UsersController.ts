@@ -9,7 +9,7 @@ import StoreValidator from 'App/Validators/User/StoreValidator'
 import UpdateValidator from 'App/Validators/User/updateValidator'
 export default class UsersController {
   public async index({ response, request }: HttpContextContract) {
-    const { page, perPage, noPaginate } = request.qs()
+    const { page, perPage, noPaginate, ...inputs } = request.qs()
 
     if (noPaginate) {
       return User.query()
@@ -17,6 +17,7 @@ export default class UsersController {
         .preload('roles', (roletable) => {
           roletable.select('id', 'name')
         })
+        .filter(inputs)
     }
 
     try {
@@ -25,6 +26,7 @@ export default class UsersController {
         .preload('roles', (roletable) => {
           roletable.select('id', 'name')
         })
+        .filter(inputs)
         .paginate(page || 1, perPage || 10)
 
       return response.ok(users)
