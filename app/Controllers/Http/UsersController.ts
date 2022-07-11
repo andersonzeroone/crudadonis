@@ -8,8 +8,29 @@ import User from 'App/Models/User'
 import StoreValidator from 'App/Validators/User/StoreValidator'
 import UpdateValidator from 'App/Validators/User/updateValidator'
 export default class UsersController {
-  public async index({ response }: HttpContextContract) {
-    response.status(200).json({ message: 'success' })
+  public async index({ response, request }: HttpContextContract) {
+    const { page, perPage, noPaginate } = request.qs()
+
+    if (noPaginate) {
+      return User.query()
+        .preload('address')
+        .preload('roles', (roletable) => {
+          roletable.select('id', 'name')
+        })
+    }
+
+    try {
+      const users = await User.query()
+        .preload('address')
+        .preload('roles', (roletable) => {
+          roletable.select('id', 'name')
+        })
+        .paginate(page || 1, perPage || 10)
+
+      return response.ok(users)
+    } catch (error) {
+      return response.badRequest({ message: 'error in list users', originalError: error.message })
+    }
     // response.ok({ message: Env.get('EMAIL') })
   }
 
