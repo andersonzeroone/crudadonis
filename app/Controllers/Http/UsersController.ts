@@ -70,8 +70,22 @@ export default class UsersController {
     return response.ok({ userFind })
   }
 
-  public async show({ response }: HttpContextContract) {
-    response.ok({ message: 'mostra um  user (id)' })
+  public async show({ response, params }: HttpContextContract) {
+    const userSecureId = params.id
+
+    try {
+      const user = await User.query()
+        .where('secure_id', userSecureId)
+        .preload('address')
+        .preload('roles')
+
+      return response.ok(user)
+    } catch (error) {
+      return response.notFound({
+        message: 'User not found',
+        originalError: error.message,
+      })
+    }
   }
 
   public async update({ response, request, params }: HttpContextContract) {
@@ -137,7 +151,15 @@ export default class UsersController {
     return response.ok({ userFind })
   }
 
-  public async destroy({ response }: HttpContextContract) {
-    response.ok({ message: 'deleta dados' })
+  public async destroy({ response, params }: HttpContextContract) {
+    const userSecureId = params.id
+
+    try {
+      await User.query().where('secure_id', userSecureId).delete()
+
+      return response.ok({ messega: 'User delete successfully' })
+    } catch (error) {
+      return response.notFound({ message: 'User not found', originalError: error.message })
+    }
   }
 }

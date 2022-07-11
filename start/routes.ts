@@ -48,22 +48,37 @@ Route.get('teste_db', async ({ response }: HttpContextContract) => {
 //   Route.delete('users/:id', 'UsersController.destroy')
 // }).prefix('v1/api')
 
+//Public Routes group
 Route.group(() => {
   Route.post('login', 'AuthController.login')
   Route.post('users/', 'UsersController.store')
 }).prefix('v1/api')
 
+//Private Routes group
+
 Route.group(() => {
-  Route.resource('user', 'UsersController').except['store']
+  Route.get('users/:id', 'UsersController.show')
 })
   .prefix('v1/api')
-  .as('blog')
   .middleware(['auth', 'is:admin,client'])
 
 Route.group(() => {
-  Route.post('testAuth', ({ response }) => {
-    return response.ok({ message: 'voce esta autenticado' })
-  })
+  Route.resource('users/', 'UsersController').except(['store', 'index', 'destroy', 'show'])
 })
   .prefix('v1/api')
-  .middleware(['auth', 'is:admin,client'])
+  .middleware(['auth', 'is:client'])
+
+// Routes admin group
+Route.group(() => {
+  Route.resource('users/', 'UsersController').only(['index', 'destroy'])
+})
+  .prefix('v1/api')
+  .middleware(['auth', 'is:admin'])
+
+// Route.group(() => {
+//   Route.post('testAuth', ({ response }) => {
+//     return response.ok({ message: 'voce esta autenticado' })
+//   })
+// })
+//   .prefix('v1/api')
+//   .middleware(['auth', 'is:admin'])

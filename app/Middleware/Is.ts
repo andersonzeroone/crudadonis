@@ -1,4 +1,5 @@
-import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+
 import User from 'App/Models/User'
 
 export default class Is {
@@ -8,18 +9,16 @@ export default class Is {
     guards?: string[]
   ) {
     // code for middleware goes here. ABOVE THE NEXT CALL
-
     const userId = await auth.user?.id
     let isNext = false
 
     if (userId && guards) {
       const user = await User.query().where('id', userId).preload('roles').first()
-
       const userJson = user?.serialize()
 
       userJson?.roles.forEach(({ name }) => {
-        guards.forEach((nameRolesGuards) => {
-          if (name.toLowerCase() === nameRolesGuards.toLowerCase()) {
+        guards.forEach((nameRoleGuards) => {
+          if (name.toLowerCase() === nameRoleGuards.toLowerCase()) {
             isNext = true
           }
         })
@@ -28,6 +27,6 @@ export default class Is {
 
     if (isNext) return next()
 
-    return response.forbidden({ message: 'Your user aren´t authorized' })
+    return response.forbidden({ message: "Your user aren't authorized", guards })
   }
 }
