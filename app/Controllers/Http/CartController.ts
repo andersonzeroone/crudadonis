@@ -67,5 +67,27 @@ export default class CartController {
     await request.validate(UpdateValidator)
   }
 
-  public async destroy({}: HttpContextContract) {}
+  public async destroy({ response, params, auth }: HttpContextContract) {
+    const userAuthenticated = auth.user?.id
+    const productId = params.id
+
+    if (userAuthenticated) {
+      try {
+        const itemCart = await Cart.query()
+          .where('user_id', userAuthenticated)
+          .andWhere('product_id', productId)
+          .firstOrFail()
+
+        await itemCart.delete()
+
+        return response.ok({
+          message: 'Item removed successfully',
+        })
+      } catch (error) {
+        return response.notFound({ message: 'Cart item not found', originalError: error.message })
+      }
+    } else {
+      return response.unauthorized({ message: 'You need to be logged' })
+    }
+  }
 }
