@@ -1,56 +1,70 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
-import Category from 'App/Models/Categorie'
-import Product from 'App/Models/Product'
+import Cart from 'App/Models/Cart'
+import Purchase from 'App/Models/Purchase'
 
 import StoreValidator from 'App/Validators/Product/StoreValidator'
 export default class PurchasesController {
   public async index({}: HttpContextContract) {}
 
-  public async store({ response, request }: HttpContextContract) {
+  public async store({ response, request, auth }: HttpContextContract) {
     await request.validate(StoreValidator)
-    const body = request.only(['name', 'code', 'price'])
-    const { categories } = request.all()
 
-    let productCreated
+    const bodyCart = request.only(['cart_id', 'user_id'])
+
+    bodyCart.user_id = auth.user?.id
 
     const trx = await Database.beginGlobalTransaction()
 
+    // Find item in cart
+    let cartItem
     try {
-      productCreated = await Product.create(body, trx)
-
-      await Promise.all(
-        categories.map(async (categoryName) => {
-          const hasCategory = await Category.findBy('name', categoryName)
-          if (hasCategory) await productCreated.related('categories').attach([hasCategory.id], trx)
-        })
-      )
-    } catch (error) {
-      trx.rollback()
-      return response.badRequest({
-        message: 'Error in create product',
-        originalError: error.message,
-      })
-    }
-
-    let product
-    try {
-      product = await Product.query()
-        .where('id', productCreated.id)
-        .preload('categories')
+      cartItem = await Cart.query()
+        .where('id', bodyCart.cart_id)
+        .where('user_id', bodyCart.user_id)
+        .preload('product', (queryProduct) => queryProduct.select('id', 'name', 'code', 'price'))
         .firstOrFail()
     } catch (error) {
-      trx.rollback()
-      return response.badRequest({
-        message: 'Error in find product',
+      return response.notFound({
+        message: 'Item cart not found',
         originalError: error.message,
       })
     }
 
-    trx.commit()
+    //Add in purchases
+    let purchaseItem
+    try {
+      const cartItemJSON = cartItem.serialize()
 
-    return response.ok(product)
+      const bodyPurchase = {
+        userId: cartItemJSON.user_id,
+        productId: cartItemJSON.product_id,
+        pricePaid: cartItemJSON.product.price * cartItemJSON.quantity,
+        quantity: cartItemJSON.quantity,
+      }
+
+      purchaseItem = await Purchase.create(bodyPurchase)
+    } catch (error) {
+      await trx.rollback()
+      return response.badRequest({
+        message: 'Error in add purchase',
+        originalError: error.message,
+      })
+    }
+
+    try {
+      await cartItem.delete()
+    } catch (error) {
+      await trx.rollback()
+      return response.badRequest({
+        message: 'Error in remove item from cart',
+        originalError: error.message,
+      })
+    }
+
+    await trx.commit()
+
+    return response.ok(purchaseItem)
   }
-
   public async show({}: HttpContextContract) {}
 }
