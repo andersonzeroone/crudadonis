@@ -63,8 +63,34 @@ export default class CartController {
     }
   }
 
-  public async update({ response, request, auth }: HttpContextContract) {
+  public async update({ response, request, auth, params }: HttpContextContract) {
     await request.validate(UpdateValidator)
+    const userAuthenticated = auth.user?.id
+    const productId = params.id
+    const { addQtdItem, removeQtdItem } = request.all()
+
+    if (userAuthenticated) {
+      try {
+        const itemCart = await Cart.query()
+          .where('user_id', userAuthenticated)
+          .andWhere('product_id', productId)
+          .firstOrFail()
+
+        if (addQtdItem) {
+          itemCart.quantity = itemCart.quantity + 1
+        } else if (removeQtdItem) {
+          itemCart.quantity = itemCart.quantity - 1
+        }
+
+        await itemCart.save()
+
+        return response.ok(itemCart)
+      } catch (error) {
+        return response.notFound({ message: 'Cart item not found', originalError: error.message })
+      }
+    } else {
+      return response.unauthorized({ message: 'You need to be logged' })
+    }
   }
 
   public async destroy({ response, params, auth }: HttpContextContract) {
