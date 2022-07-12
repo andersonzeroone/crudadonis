@@ -7,15 +7,25 @@ import UpdateValidator from 'App/Validators/Cart/UpdateValidator'
 export default class CartController {
   public async index({}: HttpContextContract) {}
 
-  public async store({ response, request, auth }: HttpContextContract) {
+  public async store({ request, response, auth }: HttpContextContract) {
     await request.validate(StoreValidator)
 
     let bodyCart = request.only(['user_id', 'product_id', 'quantity'])
 
     bodyCart.user_id = auth.user?.id
 
+    const hasProductInCart = await Cart.query()
+      .where('user_id', bodyCart.user_id)
+      .andWhere('product_id', bodyCart.product_id)
+      .first()
+
+    if (hasProductInCart) {
+      return response.badRequest({ message: 'This product is already in the cart' })
+    }
+
     try {
       const cart = await Cart.create(bodyCart)
+
       return response.ok(cart)
     } catch (error) {
       return response.badRequest({
@@ -24,7 +34,6 @@ export default class CartController {
       })
     }
   }
-
   public async show({ response, auth, params }: HttpContextContract) {
     const userAuthenticated = auth.user?.id
     const productId = params.id
