@@ -5,7 +5,27 @@ import Purchase from 'App/Models/Purchase'
 
 import StoreValidator from 'App/Validators/Product/StoreValidator'
 export default class PurchasesController {
-  public async index({}: HttpContextContract) {}
+  public async index({ response, auth }: HttpContextContract) {
+    const userAuthenticated = auth.user?.id
+
+    if (userAuthenticated) {
+      try {
+        const purchaseItems = await Purchase.query()
+          .where('user_id', userAuthenticated)
+          .preload('user', (queryUser) => queryUser.select('id', 'name', 'email'))
+          .preload('product', (queryProduct) => queryProduct.select('id', 'name', 'code', 'price'))
+
+        return response.ok(purchaseItems)
+      } catch (error) {
+        return response.badRequest({
+          message: 'Purchased items not found',
+          originalError: error.message,
+        })
+      }
+    } else {
+      return response.unauthorized({ message: 'You needs to be logged' })
+    }
+  }
 
   public async store({ response, request, auth }: HttpContextContract) {
     await request.validate(StoreValidator)
