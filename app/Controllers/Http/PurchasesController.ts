@@ -3,7 +3,7 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import Cart from 'App/Models/Cart'
 import Purchase from 'App/Models/Purchase'
 
-import StoreValidator from 'App/Validators/Product/StoreValidator'
+import StoreValidator from 'App/Validators/Purchases/StoreValidator'
 export default class PurchasesController {
   public async index({ response, auth }: HttpContextContract) {
     const userAuthenticated = auth.user?.id
