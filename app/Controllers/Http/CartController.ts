@@ -5,7 +5,41 @@ import StoreValidator from 'App/Validators/Cart/StoreValidator'
 import UpdateValidator from 'App/Validators/Cart/UpdateValidator'
 
 export default class CartController {
-  public async index({}: HttpContextContract) {}
+  public async index({ auth, response }: HttpContextContract) {
+    const userAuthenticated = auth.user?.id
+
+    let cartInfo = {
+      itensQuantity: 0,
+      totalPrice: 0,
+    }
+
+    if (userAuthenticated) {
+      try {
+        const itemsCart = await Cart.query()
+          .where('user_id', userAuthenticated)
+          .preload('user', (queryUser) => {
+            queryUser.select('id', 'name', 'email')
+          })
+          .preload('product', (queryProduct) => {
+            queryProduct.select('id', 'name', 'code', 'price')
+          })
+
+        itemsCart.forEach(({ quantity, product }, index) => {
+          cartInfo.totalPrice = product.price * quantity + cartInfo.totalPrice
+          cartInfo.itensQuantity = index + 1
+        })
+
+        return response.ok({
+          cartInfo,
+          itemsCart,
+        })
+      } catch (error) {
+        return response.notFound({ message: 'Cart items not found', originalError: error.message })
+      }
+    } else {
+      return response.unauthorized({ message: 'You need to be logged' })
+    }
+  }
 
   public async store({ request, response, auth }: HttpContextContract) {
     await request.validate(StoreValidator)
