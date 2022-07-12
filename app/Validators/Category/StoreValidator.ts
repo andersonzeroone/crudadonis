@@ -13,19 +13,10 @@ export default class StoreValidator extends MessagesCustom {
       rules.maxLength(50),
       rules.minLength(3),
       rules.regex(/^[ a-zA-ZÀ-ÿ\u00f1\u00d1]*$/g),
+
+      rules.unique({ table: 'categories', column: 'name' }),
     ]),
 
-    code: schema.string({ trim: true }, [
-      rules.unique({ table: 'products', column: 'code' }),
-      rules.maxLength(250),
-    ]),
-
-    price: schema.number.optional([rules.unsigned()]),
-
-    categories: schema
-      .array([rules.minLength(1)])
-      .members(
-        schema.string({ trim: true }, [rules.exists({ table: 'categories', column: 'name' })])
-      ),
+    observation: schema.string.optional({ trim: true }, []),
   })
 }

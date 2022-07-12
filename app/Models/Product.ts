@@ -5,7 +5,7 @@ import Categorie from './Categorie'
 
 import { compose } from '@ioc:Adonis/Core/Helpers'
 import { Filterable } from '@ioc:Adonis/Addons/LucidFilter'
-import ProductFilter from '../Models/Filters/ProductFilter'
+import ProductFilter from './Filters/ProductFilter'
 
 import { v4 as uuidv4 } from 'uuid'
 
@@ -23,6 +23,9 @@ export default class Product extends compose(BaseModel, Filterable) {
 
   @column()
   public code: string
+
+  @column()
+  public price: number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

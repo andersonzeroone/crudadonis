@@ -1,8 +1,8 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 import Category from 'App/Models/Categorie'
-import StoreValidator from 'App/Validators/Product/StoreValidator'
-import UpdateValidator from 'App/Validators/Product/UpdateValidator'
+import StoreValidator from 'App/Validators/Category/StoreValidator'
+import UpdateValidator from 'App/Validators/Category/UpdateValidator'
 
 export default class CategoriesController {
   public async index({ response, request }: HttpContextContract) {
