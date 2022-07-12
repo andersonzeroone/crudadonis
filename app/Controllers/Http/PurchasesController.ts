@@ -66,5 +66,28 @@ export default class PurchasesController {
 
     return response.ok(purchaseItem)
   }
-  public async show({}: HttpContextContract) {}
+  public async show({ response, params, auth }: HttpContextContract) {
+    const purchaseID = params.id
+    const userAuthenticated = auth.user?.id
+
+    if (userAuthenticated) {
+      try {
+        const purchaseItem = await Purchase.query()
+          .where('user_id', userAuthenticated)
+          .andWhere('id', purchaseID)
+          .preload('user', (queryUser) => queryUser.select('id', 'name', 'email'))
+          .preload('product', (queryProduct) => queryProduct.select('id', 'name', 'code', 'price'))
+          .firstOrFail()
+
+        return response.ok(purchaseItem)
+      } catch (error) {
+        return response.notFound({
+          message: 'Purchased item not found',
+          originalError: error.message,
+        })
+      }
+    } else {
+      return response.unauthorized({ message: 'You needs to be logged' })
+    }
+  }
 }
