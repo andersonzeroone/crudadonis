@@ -3,6 +3,7 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import Address from 'App/Models/Address'
 import Role from 'App/Models/Role'
 import User from 'App/Models/User'
+import { sendMail } from 'App/Services/sendMail'
 import AccessAllowValidator from 'App/Validators/User/AccessAllowValidator'
 // import Env from '@ioc:Adonis/Core/Env'
 
@@ -77,10 +78,10 @@ export default class UsersController {
       })
     }
 
-    let userFind
+    let user
 
     try {
-      userFind = await User.query().where('id', userCreate.id).preload('roles').preload('address')
+      user = await User.query().where('id', userCreate.id).preload('roles').preload('address')
     } catch (error) {
       trx.rollback()
       return response.badRequest({
@@ -89,9 +90,21 @@ export default class UsersController {
       })
     }
 
+    const { email, name } = userCreate
+    try {
+      await sendMail(email, name, 'email/welcome')
+    } catch (error) {
+      trx.rollback()
+      return response.badRequest({
+        message: 'Error in send email welcome',
+        user,
+        originalError: error.message,
+      })
+    }
+
     trx.commit()
 
-    return response.ok({ userFind })
+    return response.ok({ user })
   }
 
   public async show({ response, params }: HttpContextContract) {
